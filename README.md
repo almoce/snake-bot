@@ -5,6 +5,10 @@
 ## Overview
 Snake Duel is a minimalist, high-contrast Snake game with two competitors: a human-controlled snake and an autonomous agent racing for the same food. The game runs infinitely with instant respawns, speed scaling as scores climb, and a shareable score card.
 
+
+![Snake Duel preview](snake-duel.png)
+
+
 ## Features
 - Two snakes (human vs agent) on one grid
 - Single shared food target
