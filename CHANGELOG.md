@@ -1,6 +1,14 @@
 # Snake Bot Changelog
 
 ## [Unreleased] - 2026-02-04
+### Changed
+- **Simplified Game Mechanics:**
+  - Removed boost item feature (golden apple power-up).
+  - Removed personality system; AI now uses single greedy behavior.
+  - Removed particle effects system.
+  - Fixed score to increment by 1 per food eaten (was 10).
+  - Set agent speed to 60% of human speed (was 70%).
+
 ### Added
 - **Audio System (In Progress):**
   - Web Audio synth effects for game events.
