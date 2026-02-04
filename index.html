@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Snake</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="card">
+        <header class="header">
+          <div>
+            <h1>Snake</h1>
+            <p class="sub">Human vs Agent</p>
+          </div>
+          <div class="score">
+            <span>Score</span>
+            <strong><span id="human-score">0</span> | <span id="agent-score">0</span></strong>
+            <small class="record">Max <span id="human-max">0</span> | <span id="agent-max">0</span></small>
+          </div>
+        </header>
+
+        <div class="board-wrap">
+          <canvas id="board" width="400" height="400" aria-label="Snake game board"></canvas>
+        </div>
+
+        <div class="status" id="status" role="status">Press Enter to start</div>
+
+        <div class="controls">
+          <button id="restart" type="button">Restart</button>
+          <button id="pause" type="button">Pause</button>
+          <button id="share" type="button">Share</button>
+        </div>
+
+        <div class="key-help">
+          <span>Move: Arrow keys / WASD</span>
+          <span>Pause: Space</span>
+          <span>Restart: Enter</span>
+        </div>
+
+        <div class="pad" aria-hidden="true">
+          <button class="pad-btn" data-dir="up">▲</button>
+          <div class="pad-row">
+            <button class="pad-btn" data-dir="left">◀</button>
+            <button class="pad-btn" data-dir="down">▼</button>
+            <button class="pad-btn" data-dir="right">▶</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+
+    <div class="modal" id="share-modal" aria-hidden="true">
+      <div class="modal__backdrop" data-close="true"></div>
+      <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Share score">
+        <header class="modal__header">
+          <h2>Share</h2>
+          <button class="modal__close" type="button" data-close="true">Close</button>
+        </header>
+        <div class="modal__content">
+          <img id="share-preview" alt="Share preview" />
+        </div>
+        <div class="modal__actions">
+          <a id="share-download" download="snake-duel.png">Download PNG</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
