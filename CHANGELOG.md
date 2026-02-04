@@ -8,6 +8,14 @@
   - Removed particle effects system.
   - Fixed score to increment by 1 per food eaten (was 10).
   - Set agent speed to 60% of human speed (was 70%).
+- **Share Card:**
+  - Display rounds won instead of current score.
+
+### Added
+- **Agent Mistake System:**
+  - Agent makes mistakes with adjustable probability (BASE_MISTAKE_CHANCE).
+  - Mistake chance increases as game speed increases.
+  - Configurable max additional mistake chance at high speeds.
 
 ### Added
 - **Audio System (In Progress):**

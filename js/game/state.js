@@ -183,7 +183,7 @@ export const queueDir = (dir) => {
 };
 
 const tick = () => {
-  const constants = { DIRS, OPPOSITE, GRID_SIZE };
+  const constants = { DIRS, OPPOSITE, GRID_SIZE, BASE_TICK_MS, currentTickMs };
   const humanDir = state.human.nextDir;
   const agentDirChoice = chooseAgentDir(state, constants);
 

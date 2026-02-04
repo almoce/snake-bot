@@ -61,7 +61,9 @@ export const buildShareImage = (state, maxScores, sourceCanvas) => {
 
   c.fillStyle = "#ffffff";
   c.font = "500 20px Helvetica, Arial, sans-serif";
-  c.fillText(`Current H ${state.human.score} | A ${state.agent.score}`, 64, 520);
+  const humanRounds = state.roundWins?.human || 0;
+  const agentRounds = state.roundWins?.agent || 0;
+  c.fillText(`Rounds H ${humanRounds} | A ${agentRounds}`, 64, 520);
 
   c.font = "400 14px Helvetica, Arial, sans-serif";
   const urlLabel = "Play at " + window.location.href.replace(/https?:\/\//, "");
