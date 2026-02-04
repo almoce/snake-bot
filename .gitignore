@@ -1,1 +1,4 @@
 docs
+last_run.log
+node_modules
+.DS_Store

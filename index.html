@@ -12,12 +12,22 @@
         <header class="header">
           <div>
             <h1>Snake</h1>
-            <p class="sub">Human vs Agent</p>
+            <p class="sub">Human vs <span id="agent-mode">Agent</span></p>
+            <div class="agent-personality">
+              <label for="agent-personality">Personality</label>
+              <select id="agent-personality" aria-label="Agent personality">
+                <option value="">Random</option>
+                <option value="greedy">Greedy</option>
+                <option value="aggressive">Aggressive</option>
+                <option value="cautious">Cautious</option>
+              </select>
+            </div>
           </div>
           <div class="score">
             <span>Score</span>
             <strong><span id="human-score">0</span> | <span id="agent-score">0</span></strong>
             <small class="record">Max <span id="human-max">0</span> | <span id="agent-max">0</span></small>
+            <small class="rounds">Rounds H <span id="human-rounds">0</span> | A <span id="agent-rounds">0</span></small>
           </div>
         </header>
 
@@ -32,6 +42,7 @@
           <button id="restart" type="button">Restart</button>
           <button id="pause" type="button">Pause</button>
           <button id="share" type="button">Share</button>
+          <button id="mute" type="button">Mute</button>
         </div>
 
         <div class="key-help">
@@ -41,12 +52,13 @@
         </div>
 
         <div class="pad" aria-hidden="true">
-          <button class="pad-btn" data-dir="up">▲</button>
+          <button class="pad-btn" data-dir="up" aria-label="Up">▲</button>
           <div class="pad-row">
-            <button class="pad-btn" data-dir="left">◀</button>
-            <button class="pad-btn" data-dir="down">▼</button>
-            <button class="pad-btn" data-dir="right">▶</button>
+            <button class="pad-btn" data-dir="left" aria-label="Left">◀</button>
+            <button class="pad-btn" data-dir="down" aria-label="Down">▼</button>
+            <button class="pad-btn" data-dir="right" aria-label="Right">▶</button>
           </div>
+          <div class="touch-hint" style="font-size: 10px; margin-top: 8px; opacity: 0.7;">Or swipe on the board to move</div>
         </div>
       </section>
     </main>

@@ -1,7 +1,7 @@
 {
-  "lastCommit": "6326ea1322cb18b26580682e350d04ec89a22419",
-  "phase": 2,
-  "status": "visual-polish-complete",
-  "currentFeature": "Golden Apple Power-up",
-  "notes": "Implemented Golden Apple: spawns occasionally, +5 points, 50 tick lifetime."
+  "lastCommit": "round-wins-tracker",
+  "phase": 10,
+  "status": "in_progress",
+  "currentFeature": "Round Wins Tracker",
+  "notes": "Track round wins when one snake dies; display H/A rounds in the header; reset rounds on restart."
 }

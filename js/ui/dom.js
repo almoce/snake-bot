@@ -1,24 +1,107 @@
 
-import { queueDir, togglePause, resetGame, startGame } from '../game/state.js';
+import { queueDir, togglePause, resetGame, startGame, setAgentPersonality } from '../game/state.js';
 import { buildShareImage } from '../share/card.js';
 import { getBoard } from '../render/canvas.js';
+import { soundManager } from '../game/audio.js';
 
 let humanScoreEl;
 let agentScoreEl;
+let agentModeEl;
 let statusEl;
 let humanMaxEl;
 let agentMaxEl;
+let humanRoundsEl;
+let agentRoundsEl;
 let boostIndicatorEl;
+let agentPersonalitySelect;
 let restartBtn;
 let pauseBtn;
 let shareBtn;
+let muteBtn;
 let shareModal;
 let sharePreview;
 let shareDownload;
 let modalCloseBtn;
 let padButtons;
+let boardWrap;
 
 let lastFocusedElement = null;
+let touchStartX = 0;
+let touchStartY = 0;
+
+const MIN_SWIPE_DISTANCE = 30;
+
+const STORAGE_KEYS = {
+  personality: 'snake.agentPersonality',
+  muted: 'snake.muted',
+};
+
+const loadPersonalitySetting = () => {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.personality);
+  } catch (error) {
+    return null;
+  }
+};
+
+const savePersonalitySetting = (value) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.personality, value || '');
+  } catch (error) {
+    // Ignore storage failures
+  }
+};
+
+const loadMutedSetting = () => {
+  try {
+    const value = localStorage.getItem(STORAGE_KEYS.muted);
+    if (value === null) return null;
+    return value === '1' || value === 'true';
+  } catch (error) {
+    return null;
+  }
+};
+
+const saveMutedSetting = (value) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.muted, value ? '1' : '0');
+  } catch (error) {
+    // Ignore storage failures
+  }
+};
+
+const updateMuteButton = (muted) => {
+  if (muteBtn) muteBtn.textContent = muted ? 'Unmute' : 'Mute';
+};
+
+
+const handleTouchStart = (event) => {
+  soundManager.init();
+  // If touching the board wrap, don't prevent default yet, but keep track
+  touchStartX = event.changedTouches[0].screenX;
+  touchStartY = event.changedTouches[0].screenY;
+};
+
+const handleTouchEnd = (event) => {
+  const touchEndX = event.changedTouches[0].screenX;
+  const touchEndY = event.changedTouches[0].screenY;
+  
+  const dx = touchEndX - touchStartX;
+  const dy = touchEndY - touchStartY;
+  
+  const absX = Math.abs(dx);
+  const absY = Math.abs(dy);
+
+  if (Math.max(absX, absY) > MIN_SWIPE_DISTANCE) {
+    if (absX > absY) {
+      // Horizontal dominance
+      queueDir(dx > 0 ? "right" : "left");
+    } else {
+      // Vertical dominance
+      queueDir(dy > 0 ? "down" : "up");
+    }
+  }
+};
 
 const setStatus = (text) => {
   if (statusEl) statusEl.textContent = text;
@@ -28,8 +111,26 @@ export const updateUI = (state, maxScores) => {
   if (!state.human) return;
   humanScoreEl.textContent = `H ${state.human.score}`;
   agentScoreEl.textContent = `A ${state.agent.score}`;
+  if (state.agent && state.agent.personality) {
+    const p = state.agent.personality;
+    agentModeEl.textContent = `Agent (${p.charAt(0).toUpperCase() + p.slice(1)})`;
+  } else {
+    agentModeEl.textContent = 'Agent';
+  }
+
+  if (agentPersonalitySelect) {
+    const setting = state.agentPersonalitySetting || '';
+    if (agentPersonalitySelect.value !== setting) {
+      agentPersonalitySelect.value = setting;
+    }
+  }
   humanMaxEl.textContent = `H ${maxScores.human}`;
   agentMaxEl.textContent = `A ${maxScores.agent}`;
+
+  if (humanRoundsEl && agentRoundsEl && state.roundWins) {
+    humanRoundsEl.textContent = state.roundWins.human;
+    agentRoundsEl.textContent = state.roundWins.agent;
+  }
   
   if (state.paused) {
     pauseBtn.textContent = "Resume";
@@ -54,6 +155,7 @@ export const updateUI = (state, maxScores) => {
 };
 
 const handleKey = (event) => {
+  soundManager.init();
   // If modal is open, ignore game keys (except ESC which is handled by modal)
   if (shareModal.getAttribute("aria-hidden") === "false") {
       if (event.key === "Escape") {
@@ -93,12 +195,14 @@ const handleKey = (event) => {
       break;
     case "Enter":
       event.preventDefault();
-      // If not running, start. If running, do nothing or restart? 
-      // Original: Enter -> startGame().
-      // If already running, startGame() just unpauses/ensures running.
-      // But we probably want to support Restart logic if Game Over?
-      // Original just called startGame() which sets running=true.
       startGame();
+      break;
+    case "m":
+    case "M":
+      // Optional: Keyboard shortcut for mute
+      const m = soundManager.toggleMute();
+      updateMuteButton(m);
+      saveMutedSetting(m);
       break;
     default:
       break;
@@ -128,30 +232,65 @@ const closeShareModal = () => {
 export const init = (stateGetter, maxScoresGetter) => {
   humanScoreEl = document.getElementById("human-score");
   agentScoreEl = document.getElementById("agent-score");
+  agentModeEl = document.getElementById("agent-mode");
   statusEl = document.getElementById("status");
   humanMaxEl = document.getElementById("human-max");
   agentMaxEl = document.getElementById("agent-max");
+  humanRoundsEl = document.getElementById("human-rounds");
+  agentRoundsEl = document.getElementById("agent-rounds");
   boostIndicatorEl = document.getElementById("boost-indicator");
+  agentPersonalitySelect = document.getElementById("agent-personality");
   restartBtn = document.getElementById("restart");
   pauseBtn = document.getElementById("pause");
   shareBtn = document.getElementById("share");
+  muteBtn = document.getElementById("mute");
   shareModal = document.getElementById("share-modal");
   sharePreview = document.getElementById("share-preview");
   shareDownload = document.getElementById("share-download");
   modalCloseBtn = document.querySelector(".modal__close");
   padButtons = Array.from(document.querySelectorAll(".pad-btn"));
+  boardWrap = document.querySelector(".board-wrap");
 
   document.addEventListener("keydown", handleKey);
+
+  // Swipe logic
+  document.addEventListener("touchstart", handleTouchStart, { passive: false });
+  document.addEventListener("touchend", handleTouchEnd, { passive: false });
   
+  // Prevent scrolling when touching the board
+  boardWrap.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+  }, { passive: false });
+  
+  if (agentPersonalitySelect) {
+    agentPersonalitySelect.addEventListener("change", (event) => {
+      const value = event.target.value || null;
+      setAgentPersonality(value);
+      savePersonalitySetting(value);
+    });
+  }
+
   restartBtn.addEventListener("click", () => {
+    soundManager.init();
     resetGame();
     startGame();
   });
   
-  pauseBtn.addEventListener("click", togglePause);
+  pauseBtn.addEventListener("click", () => {
+    soundManager.init();
+    togglePause();
+  });
+
+  muteBtn.addEventListener("click", () => {
+    soundManager.init();
+    const m = soundManager.toggleMute();
+    updateMuteButton(m);
+    saveMutedSetting(m);
+  });
   
   padButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
+      soundManager.init();
       const dir = btn.dataset.dir;
       if (dir) queueDir(dir);
     });
@@ -161,11 +300,22 @@ export const init = (stateGetter, maxScoresGetter) => {
     openShareModal(stateGetter(), maxScoresGetter());
   });
 
+
+  const savedPersonality = loadPersonalitySetting();
+  if (savedPersonality !== null) {
+    setAgentPersonality(savedPersonality || null);
+    if (agentPersonalitySelect && agentPersonalitySelect.value !== savedPersonality) {
+      agentPersonalitySelect.value = savedPersonality;
+    }
+  }
+
+  const savedMuted = loadMutedSetting();
+  if (savedMuted !== null) {
+    soundManager.setMuted(savedMuted);
+  }
+  updateMuteButton(soundManager.isMuted());
+
   shareModal.addEventListener("click", (event) => {
     if (event.target.dataset.close) closeShareModal();
   });
-  
-  // Close on Escape (global handler catches it if we check aria-hidden, 
-  // but better to have a dedicated listener if we want to isolate logic?
-  // I put it in handleKey for simplicity, but let's make sure it works.)
 };
