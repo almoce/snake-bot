@@ -316,7 +316,7 @@ const tick = () => {
     }
   }
 
-  state = { ...state, human, agent, food, bonusItem };
+  state = { ...state, human, agent, food, bonusItem, boostUntil };
   updateUI();
 
   const nextMs = calcTickMs();

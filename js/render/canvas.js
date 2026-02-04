@@ -6,6 +6,7 @@ const COLORS = {
   agent: "#f85149",
   grid: "#333333",
   food: "#ffffff",
+  gold: "#ffd700",
   outline: "#000000",
 };
 
@@ -32,6 +33,24 @@ const drawFood = (x, y) => {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("🍎", x * CELL_SIZE + CELL_SIZE / 2, y * CELL_SIZE + CELL_SIZE / 2 + 1);
+  ctx.restore();
+};
+
+const drawBonus = (x, y) => {
+  ctx.save();
+  ctx.globalAlpha = 1;
+  ctx.font = "16px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  
+  // Pulse effect based on current time
+  const scale = 1 + 0.2 * Math.sin(Date.now() / 150);
+  const centerX = x * CELL_SIZE + CELL_SIZE / 2;
+  const centerY = y * CELL_SIZE + CELL_SIZE / 2 + 1;
+  
+  ctx.translate(centerX, centerY);
+  ctx.scale(scale, scale);
+  ctx.fillText("🌟", 0, 0);
   ctx.restore();
 };
 
@@ -81,6 +100,7 @@ export const render = (state) => {
   ctx.globalAlpha = 1;
   renderGrid();
   if (state.food) drawFood(state.food.x, state.food.y);
+  if (state.bonusItem) drawBonus(state.bonusItem.x, state.bonusItem.y);
   if (state.human) renderSnake(state.human.snake, "human");
   if (state.agent) renderSnake(state.agent.snake, "agent");
 };

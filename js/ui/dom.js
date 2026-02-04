@@ -8,6 +8,7 @@ let agentScoreEl;
 let statusEl;
 let humanMaxEl;
 let agentMaxEl;
+let boostIndicatorEl;
 let restartBtn;
 let pauseBtn;
 let shareBtn;
@@ -38,6 +39,17 @@ export const updateUI = (state, maxScores) => {
     setStatus("Running");
   } else {
     setStatus("Press Enter to start");
+  }
+
+  // Update boost indicator
+  const now = Date.now();
+  const humanBoosted = state.boostUntil && state.boostUntil.human > now;
+  const agentBoosted = state.boostUntil && state.boostUntil.agent > now;
+  if (humanBoosted || agentBoosted) {
+    boostIndicatorEl.textContent = humanBoosted ? "HUMAN BOOSTED! ⚡" : "AGENT BOOSTED! ⚡";
+    boostIndicatorEl.classList.add("active");
+  } else {
+    boostIndicatorEl.classList.remove("active");
   }
 };
 
@@ -119,6 +131,7 @@ export const init = (stateGetter, maxScoresGetter) => {
   statusEl = document.getElementById("status");
   humanMaxEl = document.getElementById("human-max");
   agentMaxEl = document.getElementById("agent-max");
+  boostIndicatorEl = document.getElementById("boost-indicator");
   restartBtn = document.getElementById("restart");
   pauseBtn = document.getElementById("pause");
   shareBtn = document.getElementById("share");

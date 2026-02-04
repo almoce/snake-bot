@@ -1,7 +1,7 @@
 {
-  "lastCommit": "3a4dfa8877d8e80b07fde5e065295fb7ffbb433b",
+  "lastCommit": "6326ea1322cb18b26580682e350d04ec89a22419",
   "phase": 2,
-  "status": "powerups-complete",
+  "status": "visual-polish-complete",
   "currentFeature": "Golden Apple Power-up",
   "notes": "Implemented Golden Apple: spawns occasionally, +5 points, 50 tick lifetime."
 }
