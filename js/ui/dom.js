@@ -1,5 +1,5 @@
 
-import { queueDir, togglePause, resetGame, startGame, setAgentPersonality } from '../game/state.js';
+import { queueDir, togglePause, resetGame, startGame } from '../game/state.js';
 import { buildShareImage } from '../share/card.js';
 import { getBoard } from '../render/canvas.js';
 import { soundManager } from '../game/audio.js';
@@ -12,8 +12,6 @@ let humanMaxEl;
 let agentMaxEl;
 let humanRoundsEl;
 let agentRoundsEl;
-let boostIndicatorEl;
-let agentPersonalitySelect;
 let restartBtn;
 let pauseBtn;
 let shareBtn;
@@ -32,24 +30,7 @@ let touchStartY = 0;
 const MIN_SWIPE_DISTANCE = 30;
 
 const STORAGE_KEYS = {
-  personality: 'snake.agentPersonality',
   muted: 'snake.muted',
-};
-
-const loadPersonalitySetting = () => {
-  try {
-    return localStorage.getItem(STORAGE_KEYS.personality);
-  } catch (error) {
-    return null;
-  }
-};
-
-const savePersonalitySetting = (value) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.personality, value || '');
-  } catch (error) {
-    // Ignore storage failures
-  }
 };
 
 const loadMutedSetting = () => {
@@ -111,19 +92,7 @@ export const updateUI = (state, maxScores) => {
   if (!state.human) return;
   humanScoreEl.textContent = `H ${state.human.score}`;
   agentScoreEl.textContent = `A ${state.agent.score}`;
-  if (state.agent && state.agent.personality) {
-    const p = state.agent.personality;
-    agentModeEl.textContent = `Agent (${p.charAt(0).toUpperCase() + p.slice(1)})`;
-  } else {
-    agentModeEl.textContent = 'Agent';
-  }
-
-  if (agentPersonalitySelect) {
-    const setting = state.agentPersonalitySetting || '';
-    if (agentPersonalitySelect.value !== setting) {
-      agentPersonalitySelect.value = setting;
-    }
-  }
+  agentModeEl.textContent = 'Agent';
   humanMaxEl.textContent = `H ${maxScores.human}`;
   agentMaxEl.textContent = `A ${maxScores.agent}`;
 
@@ -142,16 +111,7 @@ export const updateUI = (state, maxScores) => {
     setStatus("Press Enter to start");
   }
 
-  // Update boost indicator
-  const now = Date.now();
-  const humanBoosted = state.boostUntil && state.boostUntil.human > now;
-  const agentBoosted = state.boostUntil && state.boostUntil.agent > now;
-  if (humanBoosted || agentBoosted) {
-    boostIndicatorEl.textContent = humanBoosted ? "HUMAN BOOSTED! ⚡" : "AGENT BOOSTED! ⚡";
-    boostIndicatorEl.classList.add("active");
-  } else {
-    boostIndicatorEl.classList.remove("active");
-  }
+
 };
 
 const handleKey = (event) => {
@@ -238,8 +198,6 @@ export const init = (stateGetter, maxScoresGetter) => {
   agentMaxEl = document.getElementById("agent-max");
   humanRoundsEl = document.getElementById("human-rounds");
   agentRoundsEl = document.getElementById("agent-rounds");
-  boostIndicatorEl = document.getElementById("boost-indicator");
-  agentPersonalitySelect = document.getElementById("agent-personality");
   restartBtn = document.getElementById("restart");
   pauseBtn = document.getElementById("pause");
   shareBtn = document.getElementById("share");
@@ -262,14 +220,6 @@ export const init = (stateGetter, maxScoresGetter) => {
     e.preventDefault();
   }, { passive: false });
   
-  if (agentPersonalitySelect) {
-    agentPersonalitySelect.addEventListener("change", (event) => {
-      const value = event.target.value || null;
-      setAgentPersonality(value);
-      savePersonalitySetting(value);
-    });
-  }
-
   restartBtn.addEventListener("click", () => {
     soundManager.init();
     resetGame();
@@ -299,15 +249,6 @@ export const init = (stateGetter, maxScoresGetter) => {
   shareBtn.addEventListener("click", () => {
     openShareModal(stateGetter(), maxScoresGetter());
   });
-
-
-  const savedPersonality = loadPersonalitySetting();
-  if (savedPersonality !== null) {
-    setAgentPersonality(savedPersonality || null);
-    if (agentPersonalitySelect && agentPersonalitySelect.value !== savedPersonality) {
-      agentPersonalitySelect.value = savedPersonality;
-    }
-  }
 
   const savedMuted = loadMutedSetting();
   if (savedMuted !== null) {

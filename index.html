@@ -13,15 +13,7 @@
           <div>
             <h1>Snake</h1>
             <p class="sub">Human vs <span id="agent-mode">Agent</span></p>
-            <div class="agent-personality">
-              <label for="agent-personality">Personality</label>
-              <select id="agent-personality" aria-label="Agent personality">
-                <option value="">Random</option>
-                <option value="greedy">Greedy</option>
-                <option value="aggressive">Aggressive</option>
-                <option value="cautious">Cautious</option>
-              </select>
-            </div>
+
           </div>
           <div class="score">
             <span>Score</span>
@@ -33,7 +25,6 @@
 
         <div class="board-wrap">
           <canvas id="board" width="400" height="400" aria-label="Snake game board"></canvas>
-          <div id="boost-indicator" class="boost-indicator" aria-live="polite"></div>
         </div>
 
         <div class="status" id="status" role="status">Press Enter to start</div>

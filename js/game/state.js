@@ -6,11 +6,8 @@ export const CELL_SIZE = 20;
 export const BASE_TICK_MS = 140;
 export const SPEED_STEP_MS = 10;
 export const MIN_TICK_MS = 60;
-export const AGENT_SPEED_RATIO = 0.7;
-export const BONUS_SPAWN_CHANCE = 0.1;
-export const BONUS_DURATION_MS = 5000;
-export const BONUS_SPEED_MULTIPLIER = 0.6;
-export const BONUS_LIFETIME_TICKS = 100;
+export const AGENT_SPEED_RATIO = 0.6;
+
 
 export const DIRS = {
   up: { x: 0, y: -1 },
@@ -66,33 +63,19 @@ const spawnFood = (occupied) => {
   return free[rand(free.length)];
 };
 
-const spawnBonus = (occupied) => {
-  if (Math.random() > BONUS_SPAWN_CHANCE) return null;
-  const pos = spawnFood(occupied);
-  return pos ? { ...pos, ticksLeft: BONUS_LIFETIME_TICKS } : null;
-};
 
-const PERSONALITIES = ['greedy', 'aggressive', 'cautious'];
-let selectedPersonality = null;
 
 const createSnake = (kind, occupied, score = 0) => {
   const placed = placeSnake(occupied);
   placed.body.forEach((p) => occupied.add(posKey(p)));
   
-  const snake = {
+  return {
     kind,
     snake: placed.body,
     dir: placed.dir,
     nextDir: placed.dir,
     score,
   };
-
-  if (kind === 'agent') {
-    const chosen = selectedPersonality || PERSONALITIES[rand(PERSONALITIES.length)];
-    snake.personality = chosen;
-  }
-
-  return snake;
 };
 
 // State
@@ -100,15 +83,12 @@ let state = {
   human: null,
   agent: null,
   food: null,
-  bonusItem: null,
   running: false,
   paused: false,
-  agentPersonalitySetting: null,
   roundWins: { human: 0, agent: 0 },
 };
 
 let maxScores = { human: 0, agent: 0 };
-let boostUntil = { human: 0, agent: 0 };
 let agentMoveAccumulator = 0;
 let tickTimer = null;
 let currentTickMs = BASE_TICK_MS;
@@ -120,17 +100,6 @@ let eventFn = () => {};
 
 export const getState = () => state;
 export const getMaxScores = () => maxScores;
-export const getAgentPersonalitySetting = () => selectedPersonality;
-
-export const setAgentPersonality = (personality) => {
-  selectedPersonality = personality || null;
-  const nextPersonality = personality || PERSONALITIES[rand(PERSONALITIES.length)];
-  const nextAgent = state.agent
-    ? { ...state.agent, personality: nextPersonality }
-    : null;
-  state = { ...state, agent: nextAgent, agentPersonalitySetting: selectedPersonality };
-  updateUI();
-};
 
 export const init = (renderCallback, uiCallback, eventCallback) => {
   renderFn = renderCallback;
@@ -146,10 +115,7 @@ const totalScore = () => state.human.score + state.agent.score;
 
 const calcTickMs = () => {
   const speed = BASE_TICK_MS - totalScore() * SPEED_STEP_MS;
-  const now = Date.now();
-  const boostActive = boostUntil.human > now || boostUntil.agent > now;
-  const multiplier = boostActive ? BONUS_SPEED_MULTIPLIER : 1;
-  return Math.max(MIN_TICK_MS, Math.floor(speed * multiplier));
+  return Math.max(MIN_TICK_MS, speed);
 };
 
 const clearLoop = () => {
@@ -181,10 +147,8 @@ export const resetGame = () => {
     human,
     agent,
     food,
-    bonusItem: null,
     running: false,
     paused: false,
-    agentPersonalitySetting: selectedPersonality,
     roundWins,
   };
   agentMoveAccumulator = 0;
@@ -235,8 +199,7 @@ const tick = () => {
   const humanWouldEat = state.food && includesPos([humanNextHead], state.food);
   const agentWouldEat = agentWillMove && state.food && includesPos([agentNextHead], state.food);
 
-  const humanWouldEatBonus = state.bonusItem && includesPos([humanNextHead], state.bonusItem);
-  const agentWouldEatBonus = agentWillMove && state.bonusItem && includesPos([agentNextHead], state.bonusItem);
+
 
   const humanNextSnake = buildNextSnake(state.human.snake, humanNextHead, humanWouldEat);
   const agentNextSnake = agentWillMove
@@ -271,37 +234,15 @@ const tick = () => {
   };
 
   let food = state.food;
-  let bonusItem = state.bonusItem;
   let roundWins = state.roundWins;
 
-
-  // Bonus Lifetime
-  if (bonusItem) {
-      bonusItem.ticksLeft -= 1;
-      if (bonusItem.ticksLeft <= 0) bonusItem = null;
-  }
-
-  // Bonus Collision
-  if (bonusItem && !humanDead && includesPos([humanNextHead], bonusItem)) {
-      human.score += 50;
-      if (human.score > maxScores.human) maxScores.human = human.score;
-      eventFn('bonus', bonusItem.x, bonusItem.y);
-      bonusItem = null;
-  }
-  if (bonusItem && !agentDead && agentWillMove && includesPos([agentNextHead], bonusItem)) {
-      agent.score += 50;
-      if (agent.score > maxScores.agent) maxScores.agent = agent.score;
-      eventFn('bonus', bonusItem.x, bonusItem.y);
-      bonusItem = null;
-  }
-
   if (!humanDead && humanWouldEat) {
-    human.score += 10;
+    human.score += 1;
     if (human.score > maxScores.human) maxScores.human = human.score;
     eventFn('eat', humanNextHead.x, humanNextHead.y);
   }
   if (!agentDead && agentWouldEat) {
-    agent.score += 10;
+    agent.score += 1;
     if (agent.score > maxScores.agent) maxScores.agent = agent.score;
     eventFn('eat', agentNextHead.x, agentNextHead.y);
   }
@@ -310,19 +251,7 @@ const tick = () => {
     const occupied = new Set();
     if (!humanDead) human.snake.forEach((p) => occupied.add(posKey(p)));
     if (!agentDead) agent.snake.forEach((p) => occupied.add(posKey(p)));
-    if (bonusItem) occupied.add(posKey(bonusItem));
     food = spawnFood(occupied);
-    if (!bonusItem) bonusItem = spawnBonus(occupied);
-  }
-
-  if (!humanDead && humanWouldEatBonus) {
-    bonusItem = null;
-    boostUntil.human = Date.now() + BONUS_DURATION_MS;
-  }
-
-  if (!agentDead && agentWouldEatBonus) {
-    bonusItem = null;
-    boostUntil.agent = Date.now() + BONUS_DURATION_MS;
   }
 
   if (humanDead || agentDead) {
@@ -335,7 +264,6 @@ const tick = () => {
 
     const occupied = new Set();
     if (food) occupied.add(posKey(food));
-    if (state.bonusItem) occupied.add(posKey(state.bonusItem));
 
     if (!humanDead) human.snake.forEach((p) => occupied.add(posKey(p)));
     if (!agentDead) agent.snake.forEach((p) => occupied.add(posKey(p)));
@@ -343,10 +271,6 @@ const tick = () => {
     if (humanDead && agentDead) {
       const freshOccupied = new Set();
       if (food) freshOccupied.add(posKey(food));
-      // bonus might persist or clear? Let's clear it on death for simplicity or keep it?
-      // If we respawn, we usually reset the board state around us.
-      // Let's just keep the bonus if it's there, but ensure we don't spawn on it.
-      if (state.bonusItem) freshOccupied.add(posKey(state.bonusItem));
       human = respawnSnake("human", 0, freshOccupied);
       agent = respawnSnake("agent", 0, freshOccupied);
       agentMoveAccumulator = 0;
@@ -358,7 +282,7 @@ const tick = () => {
     }
   }
 
-  state = { ...state, human, agent, food, bonusItem, boostUntil, roundWins };
+  state = { ...state, human, agent, food, roundWins };
   updateUI();
 
   const nextMs = calcTickMs();

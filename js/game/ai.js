@@ -28,7 +28,7 @@ const getDistance = (p1, p2, gridSize) => {
 };
 
 export const chooseAgentDir = (gameState, constants) => {
-  const { agent, human, food, bonusItem } = gameState;
+  const { agent, human, food } = gameState;
   const { DIRS, OPPOSITE, GRID_SIZE } = constants;
 
   const humanDir = human.nextDir;
@@ -52,31 +52,9 @@ export const chooseAgentDir = (gameState, constants) => {
 
   if (availableDirs.length === 0) return agent.dir;
 
-  // Personality Logic
-  // Default to greedy if undefined
-  const personality = agent.personality || 'greedy'; 
-  
-  // Weights for scoring: Higher is better
-  let wFood = 0;
-  let wHuman = 0;
-
-  switch (personality) {
-    case 'aggressive':
-      // Wants to eat, but also wants to get close to human
-      wFood = 5;
-      wHuman = 8; // Positive: Closer to human is better (we subtract distance)
-      break;
-    case 'cautious':
-      // Wants to eat, but strongly avoids human
-      wFood = 10;
-      wHuman = -12; // Negative: Closer to human is worse (we subtract distance)
-      break;
-    case 'greedy':
-    default:
-      wFood = 10;
-      wHuman = 0;
-      break;
-  }
+  // Greedy personality: only cares about food
+  const wFood = 10;
+  const wHuman = 0;
 
   // Scoring function
   // We want to MAXIMIZE score.
@@ -99,25 +77,8 @@ export const chooseAgentDir = (gameState, constants) => {
       score += wFood * -distFood;
     }
 
-    // 1.5. Bonus Score
-    if (bonusItem) {
-      const distBonus = getDistance(nextHead, bonusItem, GRID_SIZE);
-      // Prioritize bonus significantly higher (5x points = 5x weight)
-      score += (wFood * 5) * -distBonus;
-    }
-
-    // 2. Human Score (Target: Human Head)
-    // We target the *next* head of the human to be predictive/aggressive
+    // 2. Human Score (not used in greedy mode)
     const distHuman = getDistance(nextHead, humanNextHead, GRID_SIZE);
-    
-    // Special case for Aggressive:
-    // If we are aggressive, we really want to intercept.
-    // But simple distance weight works for now.
-    
-    // Correction for Scoring formula:
-    // We used: score += wHuman * -distHuman
-    // If wHuman is 8 (Aggressive), -8 * dist. Minimizes dist.
-    // If wHuman is -12 (Cautious), -(-12) * dist = +12 * dist. Maximizes dist.
     score += wHuman * -distHuman;
 
     if (score > maxScore) {

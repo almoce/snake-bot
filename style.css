@@ -49,34 +49,6 @@ h1 {
   font-size: 12px;
 }
 
-.agent-personality {
-  margin-top: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.agent-personality label {
-  opacity: 0.7;
-}
-
-.agent-personality select {
-  border: 1px solid #333;
-  background: #000000;
-  color: #ffffff;
-  padding: 4px 8px;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-
-.agent-personality select:focus {
-  outline: 1px solid #ffffff;
-  outline-offset: 1px;
-}
-
 .score {
   text-align: right;
   font-size: 11px;
@@ -113,27 +85,6 @@ h1 {
   display: grid;
   place-items: center;
   position: relative;
-}
-
-.boost-indicator {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ffd700;
-  color: #000;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 14px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-}
-
-.boost-indicator.active {
-  opacity: 1;
 }
 
 #board {
