@@ -20,6 +20,9 @@ let shareModal;
 let sharePreview;
 let shareDownload;
 let modalCloseBtn;
+let rulesBtn;
+let rulesModal;
+let rulesModalCloseBtn;
 let padButtons;
 let boardWrap;
 
@@ -123,6 +126,12 @@ const handleKey = (event) => {
       }
       return;
   }
+  if (rulesModal.getAttribute("aria-hidden") === "false") {
+      if (event.key === "Escape") {
+          closeRulesModal();
+      }
+      return;
+  }
 
   switch (event.key) {
     case "ArrowUp":
@@ -189,6 +198,22 @@ const closeShareModal = () => {
   }
 };
 
+const openRulesModal = () => {
+  lastFocusedElement = document.activeElement;
+  rulesModal.setAttribute("aria-hidden", "false");
+  
+  // A11y: Move focus to Close button
+  rulesModalCloseBtn.focus();
+};
+
+const closeRulesModal = () => {
+  rulesModal.setAttribute("aria-hidden", "true");
+  // A11y: Return focus
+  if (lastFocusedElement) {
+    lastFocusedElement.focus();
+  }
+};
+
 export const init = (stateGetter, maxScoresGetter) => {
   humanScoreEl = document.getElementById("human-score");
   agentScoreEl = document.getElementById("agent-score");
@@ -205,7 +230,10 @@ export const init = (stateGetter, maxScoresGetter) => {
   shareModal = document.getElementById("share-modal");
   sharePreview = document.getElementById("share-preview");
   shareDownload = document.getElementById("share-download");
-  modalCloseBtn = document.querySelector(".modal__close");
+  modalCloseBtn = shareModal.querySelector(".modal__close");
+  rulesBtn = document.getElementById("rules-btn");
+  rulesModal = document.getElementById("rules-modal");
+  rulesModalCloseBtn = rulesModal.querySelector(".modal__close");
   padButtons = Array.from(document.querySelectorAll(".pad-btn"));
   boardWrap = document.querySelector(".board-wrap");
 
@@ -258,5 +286,14 @@ export const init = (stateGetter, maxScoresGetter) => {
 
   shareModal.addEventListener("click", (event) => {
     if (event.target.dataset.close) closeShareModal();
+  });
+
+  rulesBtn.addEventListener("click", () => {
+    soundManager.init();
+    openRulesModal();
+  });
+
+  rulesModal.addEventListener("click", (event) => {
+    if (event.target.dataset.close) closeRulesModal();
   });
 };

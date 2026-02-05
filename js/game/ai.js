@@ -57,11 +57,11 @@ export const chooseAgentDir = (gameState, constants) => {
 
   if (availableDirs.length === 0) return agent.dir;
 
-  // Calculate mistake chance based on speed (faster = more mistakes)
-  // currentTickMs decreases as speed increases, so we use BASE_TICK_MS / currentTickMs as a ratio
-  const speedRatio = BASE_TICK_MS / (currentTickMs || BASE_TICK_MS);
-  // Mistake chance increases from base to base + max as speed increases
-  const mistakeChance = BASE_MISTAKE_CHANCE + (MAX_EXTRA_MISTAKE * (speedRatio - 1));
+  // Calculate mistake chance based on tail length (longer tail = more mistakes)
+  // The agent becomes less accurate as it grows longer
+  const tailLength = Math.max(0, agent.snake.length - 1);
+  // Mistake chance increases from base to base + max as tail grows
+  const mistakeChance = BASE_MISTAKE_CHANCE + (MAX_EXTRA_MISTAKE * Math.min(tailLength / 20, 1));
 
   // Random mistake chance
   if (Math.random() < mistakeChance) {

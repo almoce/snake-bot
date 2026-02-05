@@ -44,6 +44,52 @@ h1 {
   letter-spacing: -0.02em;
 }
 
+.rules-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 6px;
+  cursor: pointer;
+  vertical-align: middle;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rules-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.rules-btn:hover {
+  opacity: 1;
+  background: none;
+  color: inherit;
+}
+
+.rules-content h3 {
+  margin: 16px 0 8px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.rules-content h3:first-child {
+  margin-top: 0;
+}
+
+.rules-content ul {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.rules-content li {
+  margin-bottom: 4px;
+}
+
 .sub {
   margin: 0;
   font-size: 12px;

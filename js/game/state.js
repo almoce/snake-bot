@@ -51,7 +51,7 @@ const placeSnake = (occupied, length = 3) => {
   return { body: [{ x: 1, y: 1 }], dir: "right" };
 };
 
-const spawnFood = (occupied) => {
+const spawnFood = (occupied, type = 'apple') => {
   const free = [];
   for (let y = 0; y < GRID_SIZE; y += 1) {
     for (let x = 0; x < GRID_SIZE; x += 1) {
@@ -60,7 +60,8 @@ const spawnFood = (occupied) => {
     }
   }
   if (free.length === 0) return null;
-  return free[rand(free.length)];
+  const pos = free[rand(free.length)];
+  return { ...pos, type };
 };
 
 
@@ -68,13 +69,14 @@ const spawnFood = (occupied) => {
 const createSnake = (kind, occupied, score = 0) => {
   const placed = placeSnake(occupied);
   placed.body.forEach((p) => occupied.add(posKey(p)));
-  
+
   return {
     kind,
     snake: placed.body,
     dir: placed.dir,
     nextDir: placed.dir,
     score,
+    shield: 0,
   };
 };
 
@@ -196,20 +198,24 @@ const tick = () => {
     ? nextHeadFor(state.agent.snake, agentDirChoice, DIRS, GRID_SIZE)
     : state.agent.snake[0];
 
-  const humanWouldEat = state.food && includesPos([humanNextHead], state.food);
-  const agentWouldEat = agentWillMove && state.food && includesPos([agentNextHead], state.food);
+  const humanWouldEatFood = state.food && includesPos([humanNextHead], state.food);
+  const agentWouldEatFood = agentWillMove && state.food && includesPos([agentNextHead], state.food);
+  
+  const humanWouldEatWatermelon = humanWouldEatFood && state.food.type === 'watermelon';
+  const agentWouldEatWatermelon = agentWouldEatFood && state.food.type === 'watermelon';
+  const humanWouldEatApple = humanWouldEatFood && state.food.type !== 'watermelon';
+  const agentWouldEatApple = agentWouldEatFood && state.food.type !== 'watermelon';
 
 
-
-  const humanNextSnake = buildNextSnake(state.human.snake, humanNextHead, humanWouldEat);
+  const humanNextSnake = buildNextSnake(state.human.snake, humanNextHead, humanWouldEatFood);
   const agentNextSnake = agentWillMove
-    ? buildNextSnake(state.agent.snake, agentNextHead, agentWouldEat)
+    ? buildNextSnake(state.agent.snake, agentNextHead, agentWouldEatFood)
     : state.agent.snake;
 
   const headOn = agentWillMove && humanNextHead.x === agentNextHead.x && humanNextHead.y === agentNextHead.y;
 
-  const humanSelfBody = bodyWithoutTail(state.human.snake, humanWouldEat);
-  const agentSelfBody = bodyWithoutTail(state.agent.snake, agentWouldEat);
+  const humanSelfBody = bodyWithoutTail(state.human.snake, humanWouldEatFood);
+  const agentSelfBody = bodyWithoutTail(state.agent.snake, agentWouldEatFood);
 
   const humanHitSelf = includesPos(humanSelfBody, humanNextHead);
   const agentHitSelf = agentWillMove && includesPos(agentSelfBody, agentNextHead);
@@ -217,8 +223,21 @@ const tick = () => {
   const humanHitOther = includesPos(agentNextSnake, humanNextHead);
   const agentHitOther = agentWillMove && includesPos(humanNextSnake, agentNextHead);
 
-  const humanDead = headOn || humanHitSelf || humanHitOther;
-  const agentDead = headOn || agentHitSelf || agentHitOther;
+  let humanDead = headOn || humanHitSelf || humanHitOther;
+  let agentDead = headOn || agentHitSelf || agentHitOther;
+  
+  // Shield protection
+  let humanShieldUsed = false;
+  let agentShieldUsed = false;
+  
+  if (humanDead && state.human.shield > 0) {
+    humanDead = false;
+    humanShieldUsed = true;
+  }
+  if (agentDead && state.agent.shield > 0) {
+    agentDead = false;
+    agentShieldUsed = true;
+  }
 
   let human = {
     ...state.human,
@@ -236,22 +255,43 @@ const tick = () => {
   let food = state.food;
   let roundWins = state.roundWins;
 
-  if (!humanDead && humanWouldEat) {
+  if (!humanDead && humanWouldEatApple) {
     human.score += 1;
     if (human.score > maxScores.human) maxScores.human = human.score;
     eventFn('eat', humanNextHead.x, humanNextHead.y);
   }
-  if (!agentDead && agentWouldEat) {
+  if (!agentDead && agentWouldEatApple) {
     agent.score += 1;
     if (agent.score > maxScores.agent) maxScores.agent = agent.score;
     eventFn('eat', agentNextHead.x, agentNextHead.y);
   }
+  
+  if (!humanDead && humanWouldEatWatermelon) {
+    human.shield = 1;
+    eventFn('shield', humanNextHead.x, humanNextHead.y);
+  }
+  if (!agentDead && agentWouldEatWatermelon) {
+    agent.shield = 1;
+    eventFn('shield', agentNextHead.x, agentNextHead.y);
+  }
+  
+  // Consume shield if used
+  if (humanShieldUsed) {
+    human.shield = 0;
+    eventFn('shield-break', humanNextHead.x, humanNextHead.y);
+  }
+  if (agentShieldUsed) {
+    agent.shield = 0;
+    eventFn('shield-break', agentNextHead.x, agentNextHead.y);
+  }
 
-  if ((!humanDead && humanWouldEat) || (!agentDead && agentWouldEat)) {
+  if ((!humanDead && humanWouldEatFood) || (!agentDead && agentWouldEatFood)) {
     const occupied = new Set();
     if (!humanDead) human.snake.forEach((p) => occupied.add(posKey(p)));
     if (!agentDead) agent.snake.forEach((p) => occupied.add(posKey(p)));
-    food = spawnFood(occupied);
+    // 15% chance to spawn watermelon, 85% apple
+    const foodType = Math.random() < 0.15 ? 'watermelon' : 'apple';
+    food = spawnFood(occupied, foodType);
   }
 
   if (humanDead || agentDead) {

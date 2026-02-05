@@ -1,5 +1,22 @@
 # Snake Bot Changelog
 
+## [Unreleased] - 2026-02-05
+### Added
+- **Watermelon Shield System:**
+  - New watermelon food item (15% spawn chance) with 🍉 icon.
+  - Eating watermelon grants a shield that protects from death once.
+  - Shield displayed as gold border highlight around snake head.
+  - Shield is consumed when protecting from death.
+- **Game Rules Modal:**
+  - Added info icon button next to title (SVG icon).
+  - Click to open modal explaining controls, game rules, and tips.
+  - Modal can be closed via button, backdrop click, or Escape key.
+
+### Changed
+- **Agent Mistake System:**
+  - Mistake chance now based on tail length instead of speed.
+  - Longer tail = higher mistake probability (capped at 20 segments).
+
 ## [Unreleased] - 2026-02-04
 ### Changed
 - **Simplified Game Mechanics:**

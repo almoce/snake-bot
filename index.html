@@ -11,7 +11,7 @@
       <section class="card">
         <header class="header">
           <div>
-            <h1>Snake</h1>
+            <h1>Snake <button id="rules-btn" class="rules-btn" aria-label="Game rules"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button></h1>
             <p class="sub">Human vs <span id="agent-mode">Agent</span></p>
 
           </div>
@@ -67,6 +67,41 @@
         </div>
         <div class="modal__actions">
           <a id="share-download" download="snake-duel.png">Download PNG</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="rules-modal" aria-hidden="true">
+      <div class="modal__backdrop" data-close="true"></div>
+      <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Game rules">
+        <header class="modal__header">
+          <h2>How to Play</h2>
+          <button class="modal__close" type="button" data-close="true">Close</button>
+        </header>
+        <div class="modal__content rules-content">
+          <h3>Controls</h3>
+          <ul>
+            <li><strong>Arrow Keys</strong> or <strong>WASD</strong> - Move your snake</li>
+            <li><strong>Space</strong> - Pause/Resume game</li>
+            <li><strong>Enter</strong> - Start game</li>
+          </ul>
+          
+          <h3>Game Rules</h3>
+          <ul>
+            <li>Eat 🍎 <strong>Apples</strong> to grow and score points</li>
+            <li>Eat 🍉 <strong>Watermelons</strong> (15% chance) to get a <strong>Shield</strong></li>
+            <li><strong>Shield</strong> protects you from dying once - shown as gold border around your head</li>
+            <li>Snakes can pass through walls and wrap around to the other side</li>
+            <li>Don't run into yourself or the other snake</li>
+            <li>Compete against the AI agent!</li>
+          </ul>
+          
+          <h3>Tips</h3>
+          <ul>
+            <li>The game speeds up as your score increases</li>
+            <li>The AI makes more mistakes as its tail gets longer</li>
+            <li>Use touch controls or swipe on mobile</li>
+          </ul>
         </div>
       </div>
     </div>

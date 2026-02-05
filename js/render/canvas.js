@@ -25,13 +25,15 @@ const drawCell = (x, y, color) => {
   ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 };
 
-const drawFood = (x, y) => {
+const drawFood = (food) => {
+  if (!food) return;
   ctx.save();
   ctx.globalAlpha = 1;
   ctx.font = "16px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("🍎", x * CELL_SIZE + CELL_SIZE / 2, y * CELL_SIZE + CELL_SIZE / 2 + 1);
+  const emoji = food.type === 'watermelon' ? "🍉" : "🍎";
+  ctx.fillText(emoji, food.x * CELL_SIZE + CELL_SIZE / 2, food.y * CELL_SIZE + CELL_SIZE / 2 + 1);
   ctx.restore();
 };
 
@@ -61,8 +63,25 @@ const renderGrid = () => {
   }
 };
 
-const renderSnake = (snake, kind) => {
+const renderSnake = (snake, kind, hasShield) => {
   const length = snake.length;
+  
+  // Draw shield border around head only
+  if (hasShield && snake.length > 0) {
+    const head = snake[0];
+    const padding = 2;
+    ctx.save();
+    ctx.strokeStyle = "#FFD700"; // Gold color for shield
+    ctx.lineWidth = 3;
+    ctx.strokeRect(
+      head.x * CELL_SIZE - padding, 
+      head.y * CELL_SIZE - padding,
+      CELL_SIZE + padding * 2,
+      CELL_SIZE + padding * 2
+    );
+    ctx.restore();
+  }
+  
   snake.forEach((part, index) => {
     if (index === 0) {
       drawHead(part.x, part.y, kind);
@@ -82,9 +101,9 @@ export const render = (state) => {
   ctx.clearRect(0, 0, board.width, board.height);
   ctx.globalAlpha = 1;
   renderGrid();
-  if (state.food) drawFood(state.food.x, state.food.y);
-  if (state.human) renderSnake(state.human.snake, "human");
-  if (state.agent) renderSnake(state.agent.snake, "agent");
+  if (state.food) drawFood(state.food);
+  if (state.human) renderSnake(state.human.snake, "human", state.human.shield > 0);
+  if (state.agent) renderSnake(state.agent.snake, "agent", state.agent.shield > 0);
 };
 
 export const triggerEffect = (kind, x, y) => {
